@@ -1,4 +1,4 @@
-import { getName } from './libs';
+import { getName, sayHello, age } from './libs';
 
 it('should pass', () => {
 	const _ = getName();

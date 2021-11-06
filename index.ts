@@ -3,7 +3,7 @@ import * as ts from 'typescript';
 
 const project = new Project({
 	// tsConfigFilePath: './tsconfig.json'
-	skipAddingFilesFromTsConfig: true,
+	skipAddingFilesFromTsConfig: true
 });
 project.addSourceFilesAtPaths('src/**/*.ts');
 
@@ -17,7 +17,7 @@ const getReferencedFiles = (filePath: string): string[] => {
 	const referencedFiles = getReferencedFiles(filePath);
 	files.push(referencedFiles);
 	if (referencedFiles) {
-		referencedFiles.forEach((file) => {
+		referencedFiles.forEach(file => {
 			if (files.length > 20) {
 				return [];
 			}
@@ -53,13 +53,13 @@ const getImportsWithAbsolutePaths = (sourceFile: SourceFile, importDeclaration: 
 		importLocationsToRemove.push({
 			start: importDeclaration.getFullStart(),
 			end: importDeclaration.getEnd(),
-			index: importDeclaration.getChildIndex(),
+			index: importDeclaration.getChildIndex()
 		});
 	}
 
 	const namedImports = importDeclaration.getNamedImports();
 
-	namedImports.forEach((ni) => {
+	namedImports.forEach(ni => {
 		const importName = ni.getName();
 
 		if (imports.has(importName)) {
@@ -68,7 +68,7 @@ const getImportsWithAbsolutePaths = (sourceFile: SourceFile, importDeclaration: 
 		} else {
 			const definitions = languageService.getDefinitionsAtPosition(sourceFile, ni.getStart());
 
-			definitions.forEach((def) => {
+			definitions.forEach(def => {
 				if (imports.has(importName)) {
 					fileImports.set(importName, imports.get(importName)!);
 					console.log(`  Cached Import - ${ni.getName()} - ${imports.get(ni.getName())}`);
@@ -100,8 +100,8 @@ const getImportsWithAbsolutePaths = (sourceFile: SourceFile, importDeclaration: 
 
 	return fileImports;
 	// // // // // importDeclaration.remove();
-}
-
+};
+/*
 const getInformation = (filePath: string, ignoreBasePath: boolean = true): [imports: Map<string, string>, sf: SourceFile] => {
 	const fileImports: Map<string, string> = new Map<string, string>();
 
@@ -126,49 +126,99 @@ const getInformation = (filePath: string, ignoreBasePath: boolean = true): [impo
 
 	return [fileImports, sourceFile];
 };
-
+*/
 export const factory = (/**/) => {
 	function visitor(ctx: ts.TransformationContext, sf: ts.SourceFile) {
-		const visitor2: ts.Visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
-			return node;
-		};
-
 		console.log('============Visiting file - ', sf.fileName);
+
+		const sourceFileToScan = project.addSourceFileAtPath(sf.fileName);
+
 		const visitor: ts.Visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
-			if (ts.isSourceFile(node) && node.getSourceFile().fileName.indexOf('app.spec') > 0) {
+			if (ts.isImportDeclaration(node)) {
+				console.log('  ### Import declaration -', node.getText());
 
-				// const [allNamedImports, sf1] = getInformation(node.fileName, false);
+				const importDeclaration = sourceFileToScan.getImportDeclaration(id => id.getText() === node.getText());
+				if (importDeclaration) {
+					const importsToChange = getImportsWithAbsolutePaths(sourceFileToScan, importDeclaration);
+					console.log(`  ### Found ${importsToChange.size} imports to change`);
 
-				// for (const x of allNamedImports) {
-				// 	console.log(`${x[0]} - ${x[1]}`);
-				// }
+					const newImports: Map<string, Array<string>> = new Map<string, Array<string>>();
 
-				console.log('manipulating spec file');
-				const n = ts.updateSourceFileNode(sf, [
-					ts.createImportDeclaration(
-						undefined,
-						undefined,
-						ts.createImportClause(
-							undefined,
-							ts.createNamedImports([
-								ts.createImportSpecifier(undefined, ts.createIdentifier('getName1')),
-								ts.createImportSpecifier(undefined, ts.createIdentifier('getName')),
-							])
-						),
-						ts.createLiteral('./libs132')
-					),
-					// Ensures the rest of the source files statements are still defined.
-					...sf.statements,
-				]);
+					for (const i of importsToChange) {
+						console.log(`   $$$$$$ Import ${i[0]} - ${i[1]}`);
+						if (newImports.has(i[1])) {
+							newImports.set(i[1], [...newImports.get(i[1])!, i[0]]);
+						} else {
+							newImports.set(i[1], [i[0]]);
+						}
+					}
 
-				console.log('');
-				console.log('New Node is - ', ts.createPrinter().printFile(n));
-				console.log('');
+					const importDeclarationToAdd: ts.ImportDeclaration[] = [];
+					for (const j of newImports) {
+						const importSpecifiers: ts.ImportSpecifier[] = [];
+						console.log(`   $$$$$$$$ Import path - ${j[0]}`);
+						j[1].forEach(imp => {
+							console.log('      $$$$$$$$ Import name - ', imp);
+							importSpecifiers.push(ts.createImportSpecifier(undefined, ts.createIdentifier(imp)));
+						});
 
-				return ts.visitEachChild(n, visitor2, ctx);
+						if (importSpecifiers.length) {
+							importDeclarationToAdd.push(
+								ts.createImportDeclaration(
+									undefined,
+									undefined,
+									ts.createImportClause(undefined, ts.createNamedImports(importSpecifiers)),
+									ts.createLiteral(j[0] + '123')
+								)
+							);
+						}
+					}
+
+					console.log('############################################');
+					return [...importDeclarationToAdd];
+					// Update the Current node
+				} else {
+					console.log('  ### Could not find import declaration for - ', node.getText());
+				}
 			}
 
-			return ts.visitEachChild(node, visitor2, ctx);
+			console.log(` Kind = ${ts.SyntaxKind[node.kind]} - ${node.getText()}`);
+			/*
+			if (ts.isSourceFile(node) && node.getSourceFile().fileName.indexOf('app.spec') > 0) {
+				console.log('  ###Source file node for -', node.fileName);
+				// const [allNamedImports, sf1] = getInformation(node.fileName, false);
+
+				// const n = ts.updateSourceFileNode(sf, [
+				// 	ts.createImportDeclaration(
+				// 		undefined,
+				// 		undefined,
+				// 		ts.createImportClause(
+				// 			undefined,
+				// 			ts.createNamedImports([
+				// 				ts.createImportSpecifier(undefined, ts.createIdentifier('getName1')),
+				// 				ts.createImportSpecifier(undefined, ts.createIdentifier('getName')),
+				// 			])
+				// 		),
+				// 		ts.createLiteral('./libs132')
+				// 	),
+				// 	// Ensures the rest of the source files statements are still defined.
+				// 	...sf.statements,
+				// ]);
+
+				// console.log('');
+				// console.log('New Node is - ', ts.createPrinter().printFile(n));
+				// console.log('');
+
+				// return ts.visitEachChild(n, visitor2, ctx);
+				return node;
+			}
+*/
+
+			try {
+				return ts.visitEachChild(node, visitor, ctx);
+			} finally {
+				// console.log(ts.createPrinter().printFile(node))
+			}
 		};
 
 		return visitor;
@@ -176,24 +226,15 @@ export const factory = (/**/) => {
 
 	return (ctx: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
 		return (sf: ts.SourceFile) => {
-			// const newSource = ts.factory.updateSourceFile(sf, [
-			// 	ts.factory.createImportDeclaration(
-			// 		undefined,
-			// 		undefined,
-			// 		ts.factory.createImportClause(
-			// 			false,
-			// 			undefined,
-			// 			ts.factory.createNamedImports([
-			// 				ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('a')),
-			// 			])
-			// 		),
-			// 		ts.factory.createStringLiteral('help')
-			// 	),
-			// 	// Ensures the rest of the source files statements are still defined.
-			// 	...sf.statements,
-			// ]);
+			if (sf.fileName.indexOf('app.spec') > 0) {
+				try {
+					return ts.visitNode(sf, visitor(ctx, sf));
+				} finally {
+					console.log('   ________________File updated... -', sf.getFullText());
+				}
+			}
 
-			return ts.visitNode(sf, visitor(ctx, sf));
+			return sf;
 		};
 	};
 };

@@ -6,12 +6,12 @@ module.exports = {
 	globals: {
 		'ts-jest': {
 			astTransformers: ['./dist/index.js'],
-			tsConfig: 'tsconfig.json',
-		},
+			tsConfig: 'tsconfig.json'
+		}
 	},
 	moduleFileExtensions: ['ts', 'js'],
 	transform: {
-		'^.+\\.(ts|tsx)$': 'ts-jest',
+		'^.+\\.(ts|tsx)$': 'ts-jest'
 	},
-	transformIgnorePatterns: ['node_modules/(?!variables/.*)'],
+	transformIgnorePatterns: ['node_modules/(?!variables/.*)']
 };
