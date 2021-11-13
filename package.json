@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"start": "tsc && node ./dist/index.js",
+		"start": "tsc && rimraf dist/src/app.spec.js && jest --clearCache && npm test",
 		"test": "jest"
 	},
 	"keywords": [],
@@ -14,6 +14,7 @@
 		"@types/jest": "^24.9.1",
 		"@types/node": "^16.11.1",
 		"jest": "^24.9.0",
+		"rimraf": "^3.0.2",
 		"ts-creator": "^1.2.5",
 		"ts-jest": "^24.3.0",
 		"ts-morph": "^12.2.0",
