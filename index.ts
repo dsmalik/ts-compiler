@@ -107,6 +107,7 @@ export const factory = (/**/) => {
 		const sourceFileToScan = project.addSourceFileAtPath(sf.fileName);
 
 		const visitor: ts.Visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
+			//// Uncommenting this block fixes the test since we are manually changing identifier to what it transpiles to
 			// if (ts.isIdentifier(node)) {
 			// 	// For an import with name - getName, it transpiles to getName_1 in require syntax, so the identifier becomes getName_1.getName
 			// 	// So doing it manually here instead of changing the symbol which i am looking how to properly?
