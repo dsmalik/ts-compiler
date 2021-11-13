@@ -184,7 +184,10 @@ export const factory = (/**/) => {
 					newS = ts.visitNode(sf, visitor(ctx, sf));
 					return newS;
 				} finally {
-					console.log('        ###   Symbols to change -', importNamesToUpdateSymbolFor);
+					console.log(
+						'### Problem here - How to change Symbols for these identifiers?? -',
+						importNamesToUpdateSymbolFor
+					);
 					console.log('Updated source is - ');
 					console.log(ts.createPrinter().printFile(newS));
 					// console.log('   ________________File updated... -', newS.getFullText());
