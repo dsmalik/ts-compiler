@@ -4,13 +4,14 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"start": "tsc && rimraf dist/src/app.spec.js && jest --clearCache && npm test",
+		"start": "tsc && rimraf dist/src/*.spec.js && jest --clearCache && npm test",
 		"test": "jest"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
+		"@types/glob": "^7.2.0",
 		"@types/jest": "^24.9.1",
 		"@types/node": "^16.11.1",
 		"jest": "^24.9.0",
@@ -19,5 +20,8 @@
 		"ts-jest": "^24.3.0",
 		"ts-morph": "^12.2.0",
 		"typescript": "^3.9.10"
+	},
+	"dependencies": {
+		"glob": "^7.2.0"
 	}
 }

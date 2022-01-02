@@ -84,10 +84,9 @@ const getImportsWithAbsolutePaths = (sourceFile: SourceFile, importDeclaration: 
 					} else {
 						importAbsolutePath =
 							sourceDirectoryPath + '/' + def.getSourceFile().getBaseNameWithoutExtension();
-
-						//console.log(`  Import path - ${importName} = ${importAbsolutePath}`);
 					}
 
+					console.log(`  Import path - ${importName} = ${importAbsolutePath}`);
 					imports.set(importName, importAbsolutePath);
 					fileImports.set(importName, imports.get(importName)!);
 				}
@@ -180,23 +179,23 @@ export const factory = (/**/) => {
 		return (sf: ts.SourceFile) => {
 			let newS: ts.SourceFile = sf;
 
-			if (sf.fileName.indexOf('app.spec') > 0) {
-				try {
-					newS = ts.visitNode(sf, visitor(ctx, sf));
-					return newS;
-				} finally {
-					console.log(
-						'### Problem here - How to change Symbols for these identifiers?? -',
-						importNamesToUpdateSymbolFor
-					);
-					console.log('Updated source is - ');
-					console.log(ts.createPrinter().printFile(newS));
-					// console.log('   ________________File updated... -', newS.getFullText());
-					// console.log(' Import Symbol to update -', importNamesToUpdateSymbol);
-				}
+			//if (sf.fileName.indexOf('app.spec') > 0) {
+			try {
+				newS = ts.visitNode(sf, visitor(ctx, sf));
+				return newS;
+			} finally {
+				console.log(
+					'### Problem here - How to change Symbols for these identifiers?? -',
+					importNamesToUpdateSymbolFor
+				);
+				console.log('Updated source is - ');
+				console.log(ts.createPrinter().printFile(newS));
+				// console.log('   ________________File updated... -', newS.getFullText());
+				// console.log(' Import Symbol to update -', importNamesToUpdateSymbol);
 			}
+			//}
 
-			return sf;
+			//return sf;
 		};
 	};
 };
